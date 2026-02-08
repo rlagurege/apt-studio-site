@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { join, extname } from "path";
 import { readFileSync, existsSync } from "fs";
 import {
   sanitizeInput,
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
     // Save after photo if provided
     if (afterFile) {
       const sanitizedFilename = sanitizeFilename(afterFile.name);
-      const fileExt = path.extname(sanitizedFilename) || ".jpg";
+      const fileExt = extname(sanitizedFilename) || ".jpg";
       
       // Ensure extension is valid
       if (!isValidImageExtension(fileExt)) {
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     // Save before photo if provided
     if (beforeFile) {
       const sanitizedFilename = sanitizeFilename(beforeFile.name);
-      const beforeExt = path.extname(sanitizedFilename) || ".jpg";
+      const beforeExt = extname(sanitizedFilename) || ".jpg";
       
       // Ensure extension is valid
       if (!isValidImageExtension(beforeExt)) {

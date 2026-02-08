@@ -25,13 +25,12 @@ export async function GET(req: Request) {
     const customers = await prisma.customer.findMany({
       where: {
         tenantId: tenant.id,
-        deletedAt: null,
       },
       include: {
         _count: {
           select: {
             requests: true,
-            appointments: true,
+            appts: true,
           },
         },
       },

@@ -28,11 +28,8 @@ export async function DELETE(
     }
 
     // Soft delete
-    const file = await prisma.file.update({
+    const file =     await prisma.file.delete({
       where: { id },
-      data: {
-        deletedAt: new Date(),
-      },
     });
 
     // TODO: Delete actual file from storage (S3, local filesystem, etc.)

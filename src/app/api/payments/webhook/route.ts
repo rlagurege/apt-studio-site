@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/db";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2026-01-28.clover",
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "";
@@ -35,10 +35,10 @@ export async function POST(req: Request) {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         await prisma.paymentIntent.updateMany({
           where: {
-            stripePaymentIntentId: paymentIntent.id,
+            providerRef: paymentIntent.id,
           },
           data: {
-            status: "succeeded",
+            status: "paid",
           },
         });
         break;
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
         const failedPayment = event.data.object as Stripe.PaymentIntent;
         await prisma.paymentIntent.updateMany({
           where: {
-            stripePaymentIntentId: failedPayment.id,
+            providerRef: failedPayment.id,
           },
           data: {
             status: "failed",

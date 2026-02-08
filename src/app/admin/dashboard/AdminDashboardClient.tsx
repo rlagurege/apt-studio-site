@@ -17,6 +17,7 @@ type Appointment = {
   styleNotes: string;
   budget?: string;
   timeline?: string;
+  status?: string;
 };
 
 type Data = {
@@ -39,8 +40,6 @@ export default function AdminDashboardClient() {
   const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const [appointments, setAppointments] = useState<any[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
@@ -111,8 +110,8 @@ export default function AdminDashboardClient() {
     );
   }
 
-  const appointments = data?.appointments ?? [];
-  const filtered = appointments.filter((a) => {
+  const requestAppointments = data?.appointments ?? [];
+  const filtered = requestAppointments.filter((a) => {
     // Artist filter
     if (selectedArtist !== "all" && a.artistSlug !== selectedArtist) return false;
     // Status filter
@@ -272,16 +271,16 @@ export default function AdminDashboardClient() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
           <p className="text-sm text-[var(--muted)]">Total Requests</p>
-          <p className="text-2xl font-semibold text-[var(--foreground)]">{appointments.length}</p>
+          <p className="text-2xl font-semibold text-[var(--foreground)]">{requestAppointments.length}</p>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
           <p className="text-sm text-[var(--muted)]">Pending</p>
-          <p className="text-2xl font-semibold text-[var(--foreground)]">{appointments.length}</p>
+          <p className="text-2xl font-semibold text-[var(--foreground)]">{requestAppointments.filter((a) => a.status === "pending" || !a.status).length}</p>
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
           <p className="text-sm text-[var(--muted)]">This Week</p>
           <p className="text-2xl font-semibold text-[var(--foreground)]">
-            {appointments.filter((a) => {
+            {requestAppointments.filter((a) => {
               const date = new Date(a.createdAtISO);
               const weekAgo = new Date();
               weekAgo.setDate(weekAgo.getDate() - 7);

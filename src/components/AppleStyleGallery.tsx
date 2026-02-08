@@ -149,7 +149,7 @@ export default function AppleStyleGallery({ tattoos, artistBySlug }: Props) {
           return (
             <div
               key={tattoo.id}
-              ref={(el) => (imageRefs.current[index] = el)}
+              ref={(el) => { imageRefs.current[index] = el; }}
               className={`relative group cursor-pointer overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] transition-all duration-300 ${
                 isFocused
                   ? "ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-[var(--background)] z-10"

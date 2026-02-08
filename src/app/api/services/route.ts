@@ -25,7 +25,6 @@ export async function GET(req: Request) {
     const services = await prisma.service.findMany({
       where: {
         tenantId: tenant.id,
-        deletedAt: null,
       },
       orderBy: {
         name: "asc",
