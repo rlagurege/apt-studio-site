@@ -1,26 +1,293 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Eagle Horizon";
+  src: url("/fonts/EagleHorizonP.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Amsterdam Handwriting";
+  src: url("/fonts/Amsterdam Handwriting.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #1f1f1f;
+  --foreground: #f5f5f0;
+  --muted: #a3a3a3;
+  --border: #262626;
+  --accent: #dc2626;
+  --card: #171717;
+  --surface: #262626;
+  --font-brand: "Amsterdam Handwriting", cursive;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.page-transition {
+  animation: page-in 0.25s ease-out forwards;
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Side slideshow panels (use with .side-slideshow .left / .right) */
+.side-slideshow {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+  width: 180px;
+  overflow: hidden;
+  z-index: 5;
+}
+.side-slideshow.left {
+  left: 0;
+}
+.side-slideshow.right {
+  right: 0;
+}
+.side-slideshow .swiper-slide img,
+.side-slideshow img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(100%) contrast(110%);
+  transition: 0.5s;
+}
+.side-slideshow .swiper-slide img:hover,
+.side-slideshow img:hover {
+  filter: grayscale(0%);
+}
+
+/* TattooWalls component styles */
+:root {
+  --apt-wall: 180px;
+  --apt-fade: 70px;
+}
+
+/* Hide on mobile/tablet */
+@media (max-width: 1024px) {
+  .apt-wall {
+    display: none !important;
+  }
+  :root {
+    --apt-wall: 0px;
+  }
+}
+
+/* Side walls */
+.apt-wall {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: var(--apt-wall);
+  z-index: 0; /* behind your content */
+  overflow: hidden;
+  background: #050505;
+  pointer-events: none;
+}
+.apt-wall-left {
+  left: 0;
+}
+.apt-wall-right {
+  right: 0;
+}
+
+.apt-wall-inner {
+  position: absolute;
+  inset: 0;
+  padding: 14px 12px;
+}
+
+/* Swiper slide height for vertical scrolling */
+.apt-wall-inner .swiper-slide {
+  height: calc((100vh - 28px) / 3 - 8px) !important;
+}
+
+/* Card look */
+.apt-card {
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+  transform: translateZ(0);
+}
+
+.apt-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  filter: grayscale(100%) contrast(120%) brightness(0.92);
+  transform: scale(1.06);
+  transition: transform 0.6s ease-out, filter 0.6s ease-out;
+}
+
+.apt-card:hover img {
+  filter: grayscale(0%) contrast(125%) brightness(1.06);
+  transform: scale(1.14);
+}
+
+/* Neon/glow */
+.apt-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+  border-radius: 18px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12) inset, 0 0 30px rgba(255, 255, 255, 0.2),
+    0 0 90px rgba(140, 140, 140, 0.18);
+  pointer-events: none;
+}
+.apt-card:hover::after {
+  opacity: 1;
+}
+
+/* Fade into center */
+.apt-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--apt-fade);
+  z-index: 5;
+}
+.apt-fade-left {
+  right: 0;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 1));
+}
+.apt-fade-right {
+  left: 0;
+  background: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 1));
+}
+
+/* FX layers */
+.apt-wall-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+.apt-grain {
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+  animation: aptGrain 2.2s steps(2) infinite;
+}
+@keyframes aptGrain {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-6px, 4px);
+  }
+  50% {
+    transform: translate(4px, -6px);
+  }
+  75% {
+    transform: translate(-3px, -2px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.apt-scanlines {
+  opacity: 0.1;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.06),
+    rgba(255, 255, 255, 0.06) 1px,
+    rgba(0, 0, 0, 0) 3px,
+    rgba(0, 0, 0, 0) 6px
+  );
+}
+
+.apt-smoke {
+  opacity: 0.25;
+  mix-blend-mode: screen;
+  background: radial-gradient(closest-side at 20% 20%, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 60%),
+    radial-gradient(closest-side at 80% 40%, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0) 65%),
+    radial-gradient(closest-side at 50% 80%, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0) 70%);
+  filter: blur(10px);
+  animation: aptSmoke 10s ease-in-out infinite;
+}
+@keyframes aptSmoke {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  50% {
+    transform: translateY(-26px) translateX(10px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+}
+
+/* Style presets for TattooWalls */
+
+/* Modern / Realism: crisp, clean, slightly desaturated */
+.apt-style-modern .apt-card img {
+  filter: grayscale(35%) contrast(118%) brightness(0.98);
+}
+.apt-style-modern .apt-card::after {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 0 26px rgba(255, 255, 255, 0.16),
+    0 0 70px rgba(180, 180, 180, 0.12);
+}
+
+/* American Traditional: punchy contrast + warm-ish pop */
+.apt-style-traditional .apt-card img {
+  filter: grayscale(10%) contrast(135%) brightness(1.02) saturate(1.25);
+}
+.apt-style-traditional .apt-card::after {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14) inset, 0 0 34px rgba(255, 255, 255, 0.22),
+    0 0 90px rgba(210, 210, 210, 0.16);
+}
+
+/* Japanese Traditional: deeper blacks + ink-heavy */
+.apt-style-japanese .apt-card img {
+  filter: grayscale(20%) contrast(145%) brightness(0.92) saturate(1.1);
+}
+.apt-style-japanese .apt-scanlines {
+  opacity: 0.12;
+}
+
+/* Horror: darker, harsher, cinematic */
+.apt-style-horror .apt-card img {
+  filter: grayscale(70%) contrast(165%) brightness(0.78);
+}
+.apt-style-horror .apt-smoke {
+  opacity: 0.34;
+}
+.apt-style-horror .apt-card::after {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 0 40px rgba(255, 255, 255, 0.2),
+    0 0 120px rgba(120, 120, 120, 0.2);
 }

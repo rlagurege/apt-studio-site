@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# APT Studio — Addictive Pain Tattoo
 
-## Getting Started
+Website for **Addictive Pain Tattoo** (APT Studio) in Gloversville, NY. Artist profiles, portfolio, and appointment request form.
 
-First, run the development server:
+## What’s included
+
+- **Home** — Intro + artist grid
+- **Artists** — List and individual profiles (bio, specialties, portfolio, request link)
+- **Appointments** — Booking request form + “How it works”
+- **API** — `POST /api/appointment-request` (form + optional reference image; writes to `data/appointment_requests.jsonl`; optional email to Tammy via SMTP)
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment (optional)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Copy `.env.example` to `.env` and fill in values **only if** you want email notifications to Tammy when someone submits an appointment request:
 
-## Learn More
+- `TAMMY_EMAIL` — Where to send notifications
+- `EMAIL_FROM` — Sender name/address
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` — Your SMTP provider
 
-To learn more about Next.js, take a look at the following resources:
+If these are not set, requests are still saved to `data/appointment_requests.jsonl`; only the email step is skipped.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Build & deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm run start
+```
 
-## Deploy on Vercel
+Deploy to [Vercel](https://vercel.com), Netlify, or any Node host. Set env vars in the dashboard if you use email. Uploaded reference images and the inbox file live on the server (`uploads/`, `data/`); use persistent storage or a DB in production if you need them to survive restarts.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Add content
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Logo** — Save the APT logo as `public/logo.png` (or `.svg`/`.webp` and set `logoPath` in `src/lib/site.ts`). If the file is missing, the nav shows the site name as text.
+- **Artists** — Edit `src/content/artists.ts` (slug, name, role, bio, avatarUrl, specialties, social links).
+- **Portfolio images** — Add images under `public/artists/` and `public/work/`, then add entries in `src/content/tattoos.ts` and reference `imageUrl: "/work/…"` etc.

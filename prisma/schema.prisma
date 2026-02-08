@@ -1,0 +1,573 @@
+// prisma/schema.prisma
+// Modern multi-tenant scheduling + requests + deposits + messaging (APT / SaaS-ready)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserStatus {
+  active
+  invited
+  disabled
+}
+
+enum RequestStatus {
+  requested
+  contacting
+  needs_photos
+  scheduled
+  approved
+  declined
+  archived
+}
+
+enum RequestSource {
+  website
+  instagram
+  phone
+  walk_in
+  referral
+}
+
+enum Priority {
+  low
+  normal
+  high
+}
+
+enum RequestEventType {
+  created
+  status_changed
+  note_added
+  message_sent
+  call_logged
+  appointment_linked
+}
+
+enum AppointmentStatus {
+  tentative
+  confirmed
+  checked_in
+  no_show
+  canceled
+  completed
+}
+
+enum BlockType {
+  blocked
+  vacation
+  walk_in_only
+}
+
+enum FileProvider {
+  s3
+  gcs
+  local
+}
+
+enum PaymentProvider {
+  stripe
+}
+
+enum PaymentType {
+  deposit
+  session
+  refund
+}
+
+enum PaymentStatus {
+  requires_payment
+  processing
+  paid
+  failed
+  refunded
+  canceled
+}
+
+enum ConversationChannel {
+  sms
+  email
+  internal
+}
+
+enum MessageDirection {
+  inbound
+  outbound
+}
+
+enum MessageProvider {
+  twilio
+  sendgrid
+  internal
+}
+
+enum MessageStatus {
+  queued
+  sent
+  delivered
+  failed
+  received
+}
+
+enum ReminderType {
+  sms
+  email
+}
+
+enum ReminderStatus {
+  scheduled
+  sent
+  failed
+  canceled
+}
+
+model Tenant {
+  id       String @id @default(cuid())
+  name     String
+  slug     String @unique
+  timezone String @default("America/New_York")
+  branding Json?
+
+  users     User[]
+  roles     Role[]
+  customers Customer[]
+  requests  AppointmentRequest[]
+  files     File[]
+  locations Location[]
+  services  Service[]
+  appts     Appointment[]
+  blocks    AvailabilityBlock[]
+  payments  PaymentIntent[]
+  convos    Conversation[]
+  reminders Reminder[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  userRoles     UserRole[]
+  requestSlots  RequestSlot[]
+  requestEvents RequestEvent[]
+  messages      Message[]
+
+  @@index([slug])
+}
+
+model User {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  email  String
+  phone  String?
+  name   String
+  status UserStatus @default(active)
+
+  // RBAC
+  roles UserRole[]
+
+  // Scheduling relationships
+  assignedRequests AppointmentRequest[] @relation("PreferredArtist")
+  artistAppts      Appointment[]        @relation("ArtistAppointments")
+  createdAppts     Appointment[]        @relation("CreatedAppointments")
+  blocks           AvailabilityBlock[]
+
+  // Files
+  ownedFiles File[] @relation("OwnerFiles")
+
+  // Audit
+  requestEvents RequestEvent[] @relation("ActorEvents")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+}
+
+model Role {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name        String
+  permissions Json   @default("[]") // store as JSON array of strings
+
+  users UserRole[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model UserRole {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, userId, roleId])
+  @@index([tenantId])
+  @@index([userId])
+  @@index([roleId])
+}
+
+model Customer {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name  String
+  email String?
+  phone String?
+  notes String?
+  tags  Json    @default("[]") // JSON array of strings
+
+  requests AppointmentRequest[]
+  appts    Appointment[]
+  files    File[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  conversations Conversation[]
+
+  @@index([tenantId])
+  @@index([tenantId, email])
+  @@index([tenantId, phone])
+}
+
+model AppointmentRequest {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  // Guest intake (if no customer record yet)
+  guestName  String?
+  guestEmail String?
+  guestPhone String?
+
+  preferredArtistId String?
+  preferredArtist   User?   @relation("PreferredArtist", fields: [preferredArtistId], references: [id], onDelete: SetNull)
+
+  category       String
+  placement      String?
+  sizeNotes      String?
+  description    String
+  budgetMinCents Int?
+  budgetMaxCents Int?
+
+  status   RequestStatus @default(requested)
+  source   RequestSource @default(website)
+  priority Priority      @default(normal)
+
+  lastContactedAt DateTime?
+  nextFollowUpAt  DateTime?
+  internalNotes   String?
+
+  slots  RequestSlot[]
+  events RequestEvent[]
+  files  File[]
+  appt   Appointment?
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  paymentIntents PaymentIntent[]
+  conversations  Conversation[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, preferredArtistId])
+  @@index([tenantId, createdAt])
+}
+
+model RequestSlot {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  requestId String
+  request   AppointmentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  startAt DateTime
+  endAt   DateTime
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([requestId])
+  @@index([tenantId, startAt])
+}
+
+model RequestEvent {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  requestId String
+  request   AppointmentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  type RequestEventType
+  meta Json?
+
+  actorUserId String?
+  actor       User?   @relation("ActorEvents", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([requestId])
+  @@index([tenantId, type])
+}
+
+model File {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  ownerUserId String?
+  owner       User?   @relation("OwnerFiles", fields: [ownerUserId], references: [id], onDelete: SetNull)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  requestId String?
+  request   AppointmentRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  provider  FileProvider
+  bucket    String
+  key       String
+  url       String?
+  mimeType  String
+  sizeBytes Int
+  sha256    String?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, requestId])
+  @@index([tenantId, appointmentId])
+  @@index([tenantId, customerId])
+}
+
+model Location {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name    String
+  address String?
+
+  appts Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Service {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name                String
+  defaultDurationMins Int
+  depositRequired     Boolean @default(false)
+  depositAmountCents  Int?
+
+  appts Appointment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+model Appointment {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  requestId String?             @unique
+  request   AppointmentRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  // Guest booking details (if no customer record yet)
+  guestName  String?
+  guestEmail String?
+  guestPhone String?
+
+  artistId String
+  artist   User   @relation("ArtistAppointments", fields: [artistId], references: [id], onDelete: Restrict)
+
+  locationId String?
+  location   Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  serviceId String?
+  service   Service? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+
+  title    String
+  startAt  DateTime
+  endAt    DateTime
+  timezone String   @default("America/New_York")
+
+  status AppointmentStatus @default(tentative)
+
+  notesCustomer String?
+  notesInternal String?
+
+  createdByUserId String?
+  createdBy       User?   @relation("CreatedAppointments", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  files         File[]
+  payments      PaymentIntent[]
+  conversations Conversation[]
+  reminders     Reminder[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([tenantId])
+  @@index([tenantId, startAt])
+  @@index([tenantId, artistId, startAt])
+  @@index([tenantId, status])
+}
+
+model AvailabilityBlock {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  startAt DateTime
+  endAt   DateTime
+  type    BlockType
+  reason  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, userId, startAt])
+}
+
+model PaymentIntent {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  requestId String?
+  request   AppointmentRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  provider    PaymentProvider @default(stripe)
+  type        PaymentType
+  amountCents Int
+  currency    String          @default("usd")
+  status      PaymentStatus
+
+  providerRef String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@index([tenantId, appointmentId])
+  @@index([tenantId, requestId])
+}
+
+model Conversation {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  requestId String?
+  request   AppointmentRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+
+  appointmentId String?
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  channel  ConversationChannel
+  messages Message[]
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, channel])
+  @@index([tenantId, customerId])
+}
+
+model Message {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  direction MessageDirection
+  from      Json?
+  to        Json?
+  body      String
+
+  provider    MessageProvider @default(internal)
+  providerRef String?
+  status      MessageStatus
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([conversationId])
+  @@index([tenantId, status])
+}
+
+model Reminder {
+  id       String @id @default(cuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  appointmentId String
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  type   ReminderType
+  sendAt DateTime
+  status ReminderStatus @default(scheduled)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([tenantId, sendAt])
+  @@index([appointmentId])
+}
