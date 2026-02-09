@@ -11,7 +11,7 @@ const RATE_LIMIT_AUTH_MAX = 5; // 5 requests per minute for auth routes
 const RATE_LIMIT_UPLOAD_MAX = 10; // 10 requests per minute for upload routes
 
 function getRateLimitKey(req: NextRequest): string {
-  const ip = req.ip || req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+  const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
   const path = req.nextUrl.pathname;
   return `${ip}:${path}`;
 }

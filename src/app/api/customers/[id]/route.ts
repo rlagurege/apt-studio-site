@@ -44,7 +44,7 @@ export async function GET(
             createdAt: "desc",
           },
         },
-        appointments: {
+        appts: {
           where: { deletedAt: null },
           include: {
             artist: {
@@ -68,7 +68,7 @@ export async function GET(
     return NextResponse.json({
       customer,
       requests: customer.requests,
-      appointments: customer.appointments,
+      appointments: customer.appts,
     });
   } catch (error) {
     console.error("Error fetching customer:", error);

@@ -27,7 +27,6 @@ export async function GET(req: Request) {
 
     const where: any = {
       tenantId: tenant.id,
-      deletedAt: null,
     };
 
     if (type === "request") {

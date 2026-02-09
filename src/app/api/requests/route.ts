@@ -87,7 +87,7 @@ export async function POST(req: Request) {
         headers: Object.fromEntries(req.headers.entries()),
         method: req.method,
         url: "/api/requests",
-      }) as unknown as IncomingMessage;
+        }) as unknown as InstanceType<typeof IncomingMessage>;
 
       const parsed = await new Promise<{ fields: any; files: any }>((resolve, reject) => {
         form.parse(fakeReq, (err, fields, files) => {
@@ -205,31 +205,39 @@ export async function POST(req: Request) {
       } else {
         // Create new customer
         if (email) {
-          customer = await prisma.customer.upsert({
+          // Find existing customer by email
+          const existingCustomer = await prisma.customer.findFirst({
             where: {
-              tenantId_email: {
-                tenantId: tenant.id,
-                email,
-              },
-            },
-            update: {
-              name,
-              phone: phone || undefined,
-            },
-            create: {
               tenantId: tenant.id,
-              name,
               email,
-              phone: phone || undefined,
             },
           });
+          
+          if (existingCustomer) {
+            customer = await prisma.customer.update({
+              where: { id: existingCustomer.id },
+              data: {
+                name,
+                phone: phone || undefined,
+              },
+            });
+          } else {
+            customer = await prisma.customer.create({
+              data: {
+                tenantId: tenant.id,
+                name,
+                email,
+                phone: phone || undefined,
+              },
+            });
+          }
         } else {
-          // Phone only - just create
+          // No email, create new customer
           customer = await prisma.customer.create({
             data: {
               tenantId: tenant.id,
               name,
-              phone,
+              phone: phone || undefined,
             },
           });
         }

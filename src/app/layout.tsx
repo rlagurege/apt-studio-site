@@ -2,7 +2,7 @@ import "./globals.css";
 import Nav from "@/components/Nav";
 import Footer from "@/components/Footer";
 import Providers from "@/components/Providers";
-import "@/lib/env-validation"; // Validate environment variables
+// import "@/lib/env-validation"; // Validate environment variables - disabled for local dev
 
 export const metadata = {
   title: "APT Studio — Addictive Pain Tattoo",

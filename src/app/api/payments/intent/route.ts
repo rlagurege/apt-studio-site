@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2026-01-28.clover",
 });
 
 // POST /api/payments/intent - Create payment intent for deposit
@@ -62,10 +62,11 @@ export async function POST(req: Request) {
       data: {
         tenantId: tenant.id,
         appointmentId,
-        stripePaymentIntentId: paymentIntent.id,
+        providerRef: paymentIntent.id,
+        type: "deposit",
         amountCents,
         currency: "usd",
-        status: "requires_payment_method",
+        status: "requires_payment",
       },
     });
 
