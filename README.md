@@ -1,4 +1,4 @@
-# APT Studio — Addictive Pain Tattoo
+e# APT Studio — Addictive Pain Tattoo
 
 Website for **Addictive Pain Tattoo** (APT Studio) in Gloversville, NY. Artist profiles, portfolio, and appointment request form.
 
