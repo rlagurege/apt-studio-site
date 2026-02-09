@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -30,15 +29,12 @@ export default function Nav() {
             className="block text-center no-underline"
             aria-label={`${SITE.name} — Home`}
           >
-            <Image
-              src="/nav-logos.png"
-              alt={SITE.name}
-              width={200}
-              height={60}
-              className="mx-auto h-auto w-auto max-w-[200px]"
-              priority
-            />
-            <span className="sr-only">{SITE.name}</span>
+            <span
+              className="text-2xl font-normal tracking-wide sm:text-3xl"
+              style={{ fontFamily: "var(--font-brand)" }}
+            >
+              {SITE.name} Studio
+            </span>
           </Link>
           {status !== "loading" && !artistSlug && (
             <Link
