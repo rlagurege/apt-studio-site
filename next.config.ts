@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Turbopack configuration (Next.js 16 default)
+  turbopack: {},
+  // Exclude seed file from TypeScript compilation
+  typescript: {
+    ignoreBuildErrors: false,
+  },
   // Security: Validate environment variables at build time
   env: {
     // Ensure critical env vars are set (will fail build if missing)
