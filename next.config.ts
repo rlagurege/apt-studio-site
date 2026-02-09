@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
   compress: true,
   // Image optimization - allow your domain
   images: {
-    domains: ['addictivepaintattoo.studio'],
     remotePatterns: [
       {
         protocol: 'https',
