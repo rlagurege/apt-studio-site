@@ -72,8 +72,21 @@ export default function Nav() {
             );
           })}
           {status !== "loading" && (
-            artistSlug ? (
+            artistSlug || isAdmin ? (
               <>
+                {(artistSlug || isAdmin) && (
+                  <Link
+                    href="/admin/schedule"
+                    className={cn(
+                      "text-sm font-medium transition-colors sm:text-[15px]",
+                      pathname.startsWith("/admin/schedule")
+                        ? "text-[var(--accent)]"
+                        : "text-[var(--muted)] hover:text-[var(--foreground)]"
+                    )}
+                  >
+                    Schedule
+                  </Link>
+                )}
                 {isAdmin ? (
                   <Link
                     href="/admin/dashboard"
