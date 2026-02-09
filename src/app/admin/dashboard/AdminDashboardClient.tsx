@@ -37,11 +37,12 @@ export default function AdminDashboardClient() {
   const [selectedRequestTitle, setSelectedRequestTitle] = useState<string>("");
   const [notification, setNotification] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [requestDetailOpen, setRequestDetailOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("calendar");
   const [appointments, setAppointments] = useState<any[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const loadRequests = () => {
     setLoading(true);
@@ -381,7 +382,19 @@ export default function AdminDashboardClient() {
       {/* Calendar View */}
       {viewMode === "calendar" && (
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-[var(--foreground)] mb-3">Calendar View</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">Schedule Calendar</h2>
+            <button
+              onClick={() => {
+                setSelectedRequestId(null);
+                setSelectedRequestTitle("");
+                setScheduleModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              + New Appointment
+            </button>
+          </div>
           <CalendarView
             appointments={appointments.map((apt) => ({
               id: apt.id,
@@ -397,7 +410,13 @@ export default function AdminDashboardClient() {
               window.location.href = `/admin/appointments/${apt.id}`;
             }}
             onDateClick={(date) => {
-              // Could filter requests by date or create new appointment
+              // Open schedule modal with pre-filled date
+              const dateStr = date.toISOString().slice(0, 16); // Format for datetime-local input
+              setSelectedRequestId("new");
+              setSelectedRequestTitle("");
+              setScheduleModalOpen(true);
+              // Store selected date for pre-filling the form
+              setSelectedDate(date);
             }}
           />
         </section>
@@ -540,15 +559,17 @@ export default function AdminDashboardClient() {
       </section>
 
       {/* Schedule Modal */}
-      {scheduleModalOpen && selectedRequestId && (
+      {scheduleModalOpen && (
         <ScheduleModal
           isOpen={scheduleModalOpen}
           requestId={selectedRequestId}
           requestTitle={selectedRequestTitle}
+          initialDate={selectedDate || undefined}
           onClose={() => {
             setScheduleModalOpen(false);
             setSelectedRequestId(null);
             setSelectedRequestTitle("");
+            setSelectedDate(null);
           }}
           onSuccess={handleScheduleSuccess}
         />

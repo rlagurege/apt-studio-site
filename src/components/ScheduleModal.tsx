@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 
 type ScheduleModalProps = {
   isOpen: boolean;
-  requestId: string;
+  requestId: string | null;
   requestTitle?: string;
+  initialDate?: Date;
   onClose: () => void;
   onSuccess: () => void;
 };
@@ -14,20 +15,76 @@ export default function ScheduleModal({
   isOpen,
   requestId,
   requestTitle,
+  initialDate,
   onClose,
   onSuccess,
 }: ScheduleModalProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [artists, setArtists] = useState<Array<{ id: string; name: string; email: string }>>([]);
+  
+  // Format date for datetime-local input
+  const formatDateForInput = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Set default start time to 2 hours from now, or use initialDate
+  const getDefaultStartTime = () => {
+    if (initialDate) {
+      return formatDateForInput(initialDate);
+    }
+    const now = new Date();
+    now.setHours(now.getHours() + 2);
+    now.setMinutes(0); // Round to nearest hour
+    return formatDateForInput(now);
+  };
+
+  // Set default end time to 3 hours after start
+  const getDefaultEndTime = (startTime: string) => {
+    if (!startTime) return "";
+    const start = new Date(startTime);
+    start.setHours(start.getHours() + 3);
+    return formatDateForInput(start);
+  };
+
   const [formData, setFormData] = useState({
     artistId: "",
     title: requestTitle || "",
-    startAt: "",
+    startAt: getDefaultStartTime(),
     endAt: "",
     timezone: "America/New_York",
     notesInternal: "",
   });
+
+  // Update end time when start time changes
+  useEffect(() => {
+    if (formData.startAt && !formData.endAt) {
+      setFormData(prev => ({
+        ...prev,
+        endAt: getDefaultEndTime(formData.startAt)
+      }));
+    }
+  }, [formData.startAt]);
+
+  // Reset form when modal opens/closes or initialDate changes
+  useEffect(() => {
+    if (isOpen) {
+      const defaultStart = getDefaultStartTime();
+      setFormData({
+        artistId: "",
+        title: requestTitle || "",
+        startAt: defaultStart,
+        endAt: getDefaultEndTime(defaultStart),
+        timezone: "America/New_York",
+        notesInternal: "",
+      });
+    }
+  }, [isOpen, requestTitle, initialDate]);
 
   // Fetch artists on mount
   useEffect(() => {
@@ -65,7 +122,7 @@ export default function ScheduleModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          requestId,
+          ...(requestId && requestId !== "new" ? { requestId } : {}),
           artistId: formData.artistId,
           title: formData.title,
           startAt: startAtISO,
