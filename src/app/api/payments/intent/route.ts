@@ -4,9 +4,15 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2026-01-28.clover",
-});
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new Error("STRIPE_SECRET_KEY is not configured");
+  }
+  return new Stripe(key, {
+    apiVersion: "2026-01-28.clover",
+  });
+}
 
 // POST /api/payments/intent - Create payment intent for deposit
 export async function POST(req: Request) {
@@ -47,6 +53,7 @@ export async function POST(req: Request) {
     }
 
     // Create payment intent
+    const stripe = getStripe();
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountCents,
       currency: "usd",
