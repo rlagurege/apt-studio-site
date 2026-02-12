@@ -84,7 +84,7 @@ export function proxy(request: NextRequest) {
         "img-src 'self' data: https: blob:",
         "font-src 'self' data:",
         "connect-src 'self' https://api.stripe.com https://*.twilio.com",
-        "frame-src 'self' https://js.stripe.com",
+        "frame-src 'self' https://js.stripe.com https://www.google.com https://maps.google.com",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
