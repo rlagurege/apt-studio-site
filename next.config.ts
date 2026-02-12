@@ -19,14 +19,19 @@ const nextConfig: NextConfig = {
   },
   // Turbopack configuration (Next.js 16 default)
   turbopack: {},
-  // Exclude seed file from TypeScript compilation
+  // TypeScript configuration
   typescript: {
     ignoreBuildErrors: false,
   },
-  // Security: Validate environment variables at build time
+  // ESLint configuration
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  // Environment variables - don't fail build if missing (Vercel will provide them)
   env: {
-    // Ensure critical env vars are set (will fail build if missing)
+    // These will be available at runtime from Vercel environment variables
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   },
   // Ensure static assets are accessible over network
   assetPrefix: process.env.NODE_ENV === 'production' ? undefined : '',
