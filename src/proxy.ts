@@ -44,7 +44,7 @@ setInterval(() => {
   }
 }, 5 * 60 * 1000); // Clean every 5 minutes
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Apply rate limiting
