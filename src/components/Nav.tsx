@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { SITE } from "@/lib/site";
+import ThemeToggle from "./ThemeToggle";
 
 const tabs = [
   { href: "/", label: "Home" },
@@ -36,19 +37,22 @@ export default function Nav() {
               {SITE.name} Studio
             </span>
           </Link>
-          {status !== "loading" && !artistSlug && (
-            <Link
-              href="/artist/login"
-              className="absolute -right-8 top-1/2 -translate-y-1/2 opacity-20 hover:opacity-50 transition-opacity"
-              aria-label="Staff sign in"
-              title="Staff sign in"
-            >
-              <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[var(--muted)]">
-                <circle cx="16" cy="16" r="14" fill="currentColor" opacity="0.15" stroke="currentColor" strokeWidth="1.2"/>
-                <text x="16" y="19.5" fontFamily="Arial, sans-serif" fontSize="9" fontWeight="bold" textAnchor="middle" fill="currentColor">APT</text>
-              </svg>
-            </Link>
-          )}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center gap-2">
+            <ThemeToggle />
+            {status !== "loading" && !artistSlug && (
+              <Link
+                href="/artist/login"
+                className="opacity-20 hover:opacity-50 transition-opacity"
+                aria-label="Staff sign in"
+                title="Staff sign in"
+              >
+                <svg width="18" height="18" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[var(--muted)]">
+                  <circle cx="16" cy="16" r="14" fill="currentColor" opacity="0.15" stroke="currentColor" strokeWidth="1.2"/>
+                  <text x="16" y="19.5" fontFamily="Arial, sans-serif" fontSize="9" fontWeight="bold" textAnchor="middle" fill="currentColor">APT</text>
+                </svg>
+              </Link>
+            )}
+          </div>
         </div>
         <nav className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 sm:gap-x-7">
           {tabs.map((tab) => {

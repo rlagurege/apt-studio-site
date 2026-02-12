@@ -1,55 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { formatStyleTag } from "@/lib/utils";
 import type { StyleTag } from "@/lib/types";
 
-const styleOptions: StyleTag[] = [
-  "black_and_grey",
-  "color",
-  "traditional",
-  "neo_traditional",
-  "fine_line",
+const quickStyles: StyleTag[] = [
   "realism",
-  "anime",
-  "script",
-  "coverup",
-  "before_after",
-  "laser_removal",
+  "traditional",
+  "color",
+  "black_and_grey",
+  "fine_line",
   "custom",
 ];
 
 export default function ImageUploadForm() {
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [beforeFile, setBeforeFile] = useState<File | null>(null);
-  const [afterFile, setAfterFile] = useState<File | null>(null);
-  const [title, setTitle] = useState("");
-  const [selectedStyles, setSelectedStyles] = useState<StyleTag[]>(["custom"]);
+  const [selectedStyle, setSelectedStyle] = useState<StyleTag>("custom");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const beforeInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (type: "before" | "after", e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (type === "before") {
-        setBeforeFile(file);
-      } else {
-        setAfterFile(file);
-      }
+      setPhotoFile(file);
+      setMessage(null);
     }
   };
 
-  const toggleStyle = (style: StyleTag) => {
-    setSelectedStyles((prev) =>
-      prev.includes(style) ? prev.filter((s) => s !== style) : [...prev, style]
-    );
+  const handleBeforeSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBeforeFile(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Allow upload with just one photo (after) or both
-    const photoToUpload = afterFile || beforeFile;
-    if (!photoToUpload) {
-      setMessage({ type: "error", text: "Please select at least one photo" });
+    if (!photoFile) {
+      setMessage({ type: "error", text: "Please select a photo" });
       return;
     }
 
@@ -58,10 +50,13 @@ export default function ImageUploadForm() {
 
     try {
       const formData = new FormData();
+      // Use photoFile as "after" (main photo)
+      formData.append("after", photoFile);
       if (beforeFile) formData.append("before", beforeFile);
-      if (afterFile) formData.append("after", afterFile);
-      formData.append("title", title || "New piece");
-      formData.append("styles", selectedStyles.join(","));
+      // Generate a simple title based on style
+      const styleTitle = selectedStyle !== "custom" ? formatStyleTag(selectedStyle) : "New piece";
+      formData.append("title", styleTitle);
+      formData.append("styles", selectedStyle);
 
       const res = await fetch("/api/artist/upload", {
         method: "POST",
@@ -71,16 +66,16 @@ export default function ImageUploadForm() {
       const data = await res.json();
 
       if (res.ok) {
-        setMessage({ type: "success", text: "Photo uploaded successfully!" });
+        setMessage({ type: "success", text: "✓ Photo added to gallery!" });
+        setPhotoFile(null);
         setBeforeFile(null);
-        setAfterFile(null);
-        setTitle("");
-        setSelectedStyles(["custom"]);
+        setSelectedStyle("custom");
+        setShowAdvanced(false);
         // Reset file inputs
-        const beforeInput = document.getElementById("before-file") as HTMLInputElement;
-        const afterInput = document.getElementById("after-file") as HTMLInputElement;
-        if (beforeInput) beforeInput.value = "";
-        if (afterInput) afterInput.value = "";
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        if (beforeInputRef.current) beforeInputRef.current.value = "";
+        // Clear message after 3 seconds
+        setTimeout(() => setMessage(null), 3000);
       } else {
         setMessage({ type: "error", text: data.error || "Upload failed" });
       }
@@ -93,34 +88,80 @@ export default function ImageUploadForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Main Photo Upload - Large, Touch-Friendly */}
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
-          Title (optional)
+        <label
+          htmlFor="photo-file"
+          className="flex flex-col items-center justify-center w-full min-h-[200px] border-2 border-dashed border-[var(--border)] rounded-xl cursor-pointer bg-[var(--surface)] hover:bg-[var(--card)] hover:border-[var(--accent)] transition-all touch-manipulation active:scale-[0.98]"
+        >
+          {photoFile ? (
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[var(--accent)]/20 flex items-center justify-center">
+                <svg className="w-8 h-8 text-[var(--accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-sm font-medium text-[var(--foreground)] mb-1">Photo Selected</p>
+              <p className="text-xs text-[var(--muted)] truncate max-w-[200px]">{photoFile.name}</p>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPhotoFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                className="mt-3 text-xs text-[var(--accent)] hover:underline"
+              >
+                Change Photo
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center p-8 text-center">
+              <svg
+                className="w-12 h-12 mb-3 text-[var(--muted)]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <p className="text-base font-medium text-[var(--foreground)] mb-1">
+                Tap to choose from gallery
+              </p>
+              <p className="text-xs text-[var(--muted)]">or take a photo</p>
+            </div>
+          )}
+          <input
+            id="photo-file"
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handlePhotoSelect}
+            className="hidden"
+          />
         </label>
-        <input
-          id="title"
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g., Realism Portrait, Traditional Sleeve"
-          className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm text-[var(--foreground)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30"
-        />
       </div>
 
+      {/* Quick Style Selection */}
       <div>
-        <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
-          Styles
-        </label>
+        <label className="block text-xs font-medium text-[var(--muted)] mb-2">Style (optional)</label>
         <div className="flex flex-wrap gap-2">
-          {styleOptions.map((style) => (
+          {quickStyles.map((style) => (
             <button
               key={style}
               type="button"
-              onClick={() => toggleStyle(style)}
-              className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
-                selectedStyles.includes(style)
-                  ? "border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]"
-                  : "border-[var(--border)] bg-[var(--surface)] text-[var(--muted)] hover:bg-[var(--border)]"
+              onClick={() => setSelectedStyle(style)}
+              className={`rounded-lg border px-3 py-2 text-sm font-medium transition-all touch-manipulation ${
+                selectedStyle === style
+                  ? "border-[var(--accent)] bg-[var(--accent)] text-white shadow-sm"
+                  : "border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--card)]"
               }`}
             >
               {formatStyleTag(style)}
@@ -129,95 +170,70 @@ export default function ImageUploadForm() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="before-file" className="block text-sm font-medium text-[var(--foreground)] mb-2">
-            Before
-          </label>
-          <label
-            htmlFor="before-file"
-            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer bg-[var(--surface)] hover:bg-[var(--card)] transition-colors"
+      {/* Advanced Options (Collapsible) */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setShowAdvanced(!showAdvanced)}
+          className="flex items-center justify-between w-full text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+        >
+          <span>Before & After (optional)</span>
+          <svg
+            className={`w-4 h-4 transition-transform ${showAdvanced ? "rotate-180" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <svg
-                className="w-8 h-8 mb-2 text-[var(--muted)]"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 20 16"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021 5.5 5.5 0 0 0 5 13h3m-3-4h3m-3 4h3m6-4v6m0 0v3m0-3h3m-3 0h-3"
-                />
-              </svg>
-              <p className="mb-1 text-xs text-[var(--muted)]">
-                <span className="font-medium">Tap to upload</span> or drag and drop
-              </p>
-              <p className="text-xs text-[var(--muted)]">PNG, JPG (optional)</p>
-            </div>
-            <input
-              id="before-file"
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileChange("before", e)}
-              className="hidden"
-            />
-          </label>
-          {beforeFile && (
-            <p className="mt-2 text-xs text-[var(--muted)] truncate">✓ {beforeFile.name}</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="after-file" className="block text-sm font-medium text-[var(--foreground)] mb-2">
-            After
-          </label>
-          <label
-            htmlFor="after-file"
-            className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer bg-[var(--surface)] hover:bg-[var(--card)] transition-colors"
-          >
-            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-              <svg
-                className="w-8 h-8 mb-2 text-[var(--muted)]"
-                aria-hidden="true"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 20 16"
-              >
-                <path
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021 5.5 5.5 0 0 0 5 13h3m-3-4h3m-3 4h3m6-4v6m0 0v3m0-3h3m-3 0h-3"
-                />
-              </svg>
-              <p className="mb-1 text-xs text-[var(--muted)]">
-                <span className="font-medium">Tap to upload</span> or drag and drop
-              </p>
-              <p className="text-xs text-[var(--muted)]">PNG, JPG</p>
-            </div>
-            <input
-              id="after-file"
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileChange("after", e)}
-              className="hidden"
-            />
-          </label>
-          {afterFile && (
-            <p className="mt-2 text-xs text-[var(--muted)] truncate">✓ {afterFile.name}</p>
-          )}
-        </div>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {showAdvanced && (
+          <div className="mt-3">
+            <label
+              htmlFor="before-file"
+              className="flex items-center justify-center w-full h-24 border-2 border-dashed border-[var(--border)] rounded-lg cursor-pointer bg-[var(--surface)] hover:bg-[var(--card)] transition-colors touch-manipulation"
+            >
+              {beforeFile ? (
+                <div className="text-center">
+                  <p className="text-xs text-[var(--foreground)]">✓ {beforeFile.name}</p>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setBeforeFile(null);
+                      if (beforeInputRef.current) beforeInputRef.current.value = "";
+                    }}
+                    className="mt-1 text-xs text-[var(--accent)] hover:underline"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <svg className="w-6 h-6 mx-auto mb-1 text-[var(--muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <p className="text-xs text-[var(--muted)]">Add before photo</p>
+                </div>
+              )}
+              <input
+                id="before-file"
+                ref={beforeInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleBeforeSelect}
+                className="hidden"
+              />
+            </label>
+          </div>
+        )}
       </div>
 
+      {/* Success/Error Message */}
       {message && (
         <div
-          className={`rounded-lg p-3 text-sm ${
+          className={`rounded-lg p-3 text-sm text-center ${
             message.type === "success"
               ? "bg-green-900/20 text-green-200 border border-green-800/50"
               : "bg-red-900/20 text-red-200 border border-red-800/50"
@@ -227,12 +243,23 @@ export default function ImageUploadForm() {
         </div>
       )}
 
+      {/* Submit Button */}
       <button
         type="submit"
-        disabled={uploading || (!afterFile && !beforeFile)}
-        className="w-full rounded-lg bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity touch-manipulation"
+        disabled={uploading || !photoFile}
+        className="w-full rounded-xl bg-[var(--accent)] px-6 py-4 text-base font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity touch-manipulation active:scale-[0.98] shadow-lg shadow-[var(--accent)]/20"
       >
-        {uploading ? "Uploading..." : "Add to Gallery"}
+        {uploading ? (
+          <span className="flex items-center justify-center gap-2">
+            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Uploading...
+          </span>
+        ) : (
+          "Add to Gallery"
+        )}
       </button>
     </form>
   );

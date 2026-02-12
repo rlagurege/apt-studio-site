@@ -1,0 +1,6 @@
+# Pages that require backend - exclude from static export
+src/app/admin/**
+src/app/artist/**
+src/app/api/**
+src/app/appointments/**
+src/app/test-login/**

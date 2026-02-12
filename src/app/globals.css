@@ -128,6 +128,12 @@ body {
 /* Swiper slide height for vertical scrolling */
 .apt-wall-inner .swiper-slide {
   height: calc((100vh - 28px) / 3 - 8px) !important;
+  background: transparent;
+}
+
+/* Ensure slides always have content - prevent black gaps */
+.apt-wall-inner .swiper-slide:empty {
+  display: none;
 }
 
 /* Card look */

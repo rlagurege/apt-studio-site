@@ -8,18 +8,25 @@ import { tattoos } from "@/content/tattoos";
 
 function getSlideImages(): string[] {
   const urls = tattoos.map((t) => t.imageUrl).filter(Boolean);
-  // Ensure we have at least 12 images total (6 per side) by duplicating
-  // Use a deterministic shuffle for consistent but varied pattern
+  
+  if (urls.length === 0) {
+    return [];
+  }
+  
+  // For seamless looping with slidesPerView={3}, we need at least 6 images per side
+  // Duplicate enough times to ensure continuous slides without gaps
+  // Each side needs enough slides to loop seamlessly (minimum 2x slidesPerView)
+  const minSlidesPerSide = 12; // Enough for seamless looping
+  const totalNeeded = minSlidesPerSide * 2; // For both sides
+  
   const extended: string[] = [];
-  while (extended.length < 12) {
+  // Keep duplicating until we have enough for seamless looping
+  while (extended.length < totalNeeded) {
     extended.push(...urls);
   }
-  // Interleave images for better visual distribution
-  const interleaved: string[] = [];
-  for (let i = 0; i < Math.max(extended.length, 12); i++) {
-    interleaved.push(extended[i % urls.length]);
-  }
-  return interleaved.slice(0, Math.max(12, extended.length));
+  
+  // Return exactly what we need for seamless looping
+  return extended.slice(0, totalNeeded);
 }
 
 function prefersReducedMotion() {
@@ -45,10 +52,20 @@ export default function TattooWalls({ styleKey = "modern" }: { styleKey?: string
 
   const reduce = prefersReducedMotion();
 
-  // Split images between left and right walls - ensure each has at least 6
-  const mid = Math.ceil(slideImages.length / 2);
+  // Split images between left and right walls - ensure each has enough for seamless looping
+  // Each side needs at least 12 images for smooth continuous slides
+  const mid = Math.floor(slideImages.length / 2);
   const leftImgs = slideImages.slice(0, mid);
   const rightImgs = slideImages.slice(mid);
+  
+  // Ensure both sides have enough images (duplicate if needed)
+  const minPerSide = 12;
+  const leftFinal = leftImgs.length >= minPerSide 
+    ? leftImgs 
+    : [...leftImgs, ...leftImgs.slice(0, minPerSide - leftImgs.length)];
+  const rightFinal = rightImgs.length >= minPerSide 
+    ? rightImgs 
+    : [...rightImgs, ...rightImgs.slice(0, minPerSide - rightImgs.length)];
 
   return (
     <>
@@ -62,14 +79,15 @@ export default function TattooWalls({ styleKey = "modern" }: { styleKey?: string
           <Swiper
             modules={[Autoplay]}
             direction="vertical"
-            loop
+            loop={leftFinal.length >= 6}
+            loopAdditionalSlides={3}
             slidesPerView={3}
             spaceBetween={12}
             speed={2500}
             allowTouchMove={false}
             autoplay={reduce ? false : { delay: 5000, disableOnInteraction: false }}
           >
-            {leftImgs.map((src, idx) => (
+            {leftFinal.map((src, idx) => (
               <SwiperSlide key={`left-${src}-${idx}`}>
                 <div className="apt-card">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -91,7 +109,8 @@ export default function TattooWalls({ styleKey = "modern" }: { styleKey?: string
           <Swiper
             modules={[Autoplay]}
             direction="vertical"
-            loop
+            loop={rightFinal.length >= 6}
+            loopAdditionalSlides={3}
             slidesPerView={3}
             spaceBetween={12}
             speed={2500}
@@ -102,7 +121,7 @@ export default function TattooWalls({ styleKey = "modern" }: { styleKey?: string
                 : { delay: 5000, reverseDirection: true, disableOnInteraction: false }
             }
           >
-            {rightImgs.map((src, idx) => (
+            {rightFinal.map((src, idx) => (
               <SwiperSlide key={`right-${src}-${idx}`}>
                 <div className="apt-card">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

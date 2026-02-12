@@ -65,21 +65,32 @@ export function middleware(request: NextRequest) {
   // Security headers
   const response = NextResponse.next();
   
-  // Content Security Policy
-  const cspHeader = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // 'unsafe-eval' needed for Next.js dev
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https: blob:",
-    "font-src 'self' data:",
-    "connect-src 'self' https://api.stripe.com https://*.twilio.com",
-    "frame-src 'self' https://js.stripe.com",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
-  ].join("; ");
+  // Content Security Policy - More permissive in development
+  const isDev = process.env.NODE_ENV === "development";
+  const cspHeader = isDev
+    ? [
+        "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:",
+        "script-src * 'unsafe-inline' 'unsafe-eval'",
+        "style-src * 'unsafe-inline'",
+        "img-src * data: blob:",
+        "font-src * data:",
+        "connect-src *",
+        "frame-src *",
+      ].join("; ")
+    : [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: https: blob:",
+        "font-src 'self' data:",
+        "connect-src 'self' https://api.stripe.com https://*.twilio.com",
+        "frame-src 'self' https://js.stripe.com",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+        "upgrade-insecure-requests",
+      ].join("; ");
 
   // Security headers
   response.headers.set("X-DNS-Prefetch-Control", "on");
@@ -115,7 +126,8 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder files
+     * - fonts folder
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot)).*)",
+    "/((?!_next/static|_next/image|favicon.ico|fonts/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|css|js|woff|woff2|ttf|eot)).*)",
   ],
 };

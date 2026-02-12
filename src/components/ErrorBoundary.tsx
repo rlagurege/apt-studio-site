@@ -9,13 +9,13 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  error: Error | null;
+  error?: Error;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
+export default class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -24,33 +24,28 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("ErrorBoundary caught an error:", error, errorInfo);
-    // You can log to an error reporting service here
   }
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
       return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-          <div className="max-w-md w-full rounded-2xl border border-red-500/50 bg-red-900/20 p-6 text-center">
-            <h2 className="text-xl font-semibold text-red-200 mb-2">Something went wrong</h2>
-            <p className="text-red-300 mb-4">
+        this.props.fallback || (
+          <div className="rounded-2xl border border-red-600/50 bg-red-900/20 p-6 text-center">
+            <h2 className="text-lg font-semibold text-red-200 mb-2">Something went wrong</h2>
+            <p className="text-red-300 text-sm mb-4">
               {this.state.error?.message || "An unexpected error occurred"}
             </p>
             <button
               onClick={() => {
-                this.setState({ hasError: false, error: null });
+                this.setState({ hasError: false, error: undefined });
                 window.location.reload();
               }}
-              className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-500 transition-colors"
+              className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-500"
             >
               Reload Page
             </button>
           </div>
-        </div>
+        )
       );
     }
 

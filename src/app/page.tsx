@@ -85,7 +85,7 @@ export default function HomePage() {
             Meet the Crew
           </h2>
           <p className="mt-2 text-sm text-[var(--muted)] max-w-xl mx-auto">
-            Pick an artist by style. View their work. Request an appointment—Tammy will follow up to schedule.
+            Pick an artist by style. View their work. Request an appointment—Tammi will follow up to schedule.
           </p>
           <div className="mt-8 flex justify-center">
             <FaceGrid artists={artists} />
@@ -123,11 +123,14 @@ export default function HomePage() {
             <div className="w-full max-w-md aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
               <iframe
                 title="Addictive Pain Tattoo location"
-                src={`https://www.google.com/maps?q=${SITE.mapsQuery}&z=15&output=embed`}
-                className="h-full w-full border-0"
+                src={`https://www.google.com/maps?q=${encodeURIComponent(SITE.addressSingleLine)}&output=embed&z=15`}
+                width="100%"
+                height="100%"
+                className="border-0"
                 allowFullScreen
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
+                style={{ minHeight: "300px", border: "none" }}
               />
             </div>
           </div>

@@ -164,6 +164,7 @@ model User {
   phone  String?
   name   String
   status UserStatus @default(active)
+  color  String?    // Artist color for calendar display (hex code)
 
   // RBAC
   roles UserRole[]

@@ -7,19 +7,44 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-const pool = process.env.DATABASE_URL
-  ? new Pool({
-      connectionString: process.env.DATABASE_URL,
-    })
-  : undefined;
+const connectionString = process.env.DATABASE_URL;
 
-const adapter = pool ? new PrismaPg(pool) : undefined;
+// Only initialize Prisma if DATABASE_URL is set and valid (not placeholder)
+let prismaInstance: PrismaClient | null = null;
 
-export const prisma =
-  global.prisma ||
-  new PrismaClient({
-    adapter: adapter || undefined,
-    log: ["error", "warn"],
-  });
+if (connectionString && !connectionString.includes("johndoe") && !connectionString.includes("randompassword")) {
+  try {
+    const pool = new Pool({
+      connectionString,
+    });
+    const adapter = new PrismaPg(pool);
 
-if (process.env.NODE_ENV !== "production") global.prisma = prisma;
+    const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+
+    prismaInstance =
+      globalForPrisma.prisma ??
+      new PrismaClient({
+        adapter, // Required in Prisma v7 for engine type "client"
+        log: ["error", "warn"],
+      });
+
+    if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prismaInstance;
+  } catch (error) {
+    console.error("[DB] Failed to initialize Prisma:", error);
+    prismaInstance = null;
+  }
+} else {
+  console.warn("[DB] DATABASE_URL not configured or using placeholder. Prisma features will be unavailable.");
+}
+
+// Export a proxy that throws helpful errors if Prisma isn't initialized
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    if (!prismaInstance) {
+      throw new Error(
+        "Prisma Client is not initialized. Please set a valid DATABASE_URL in your .env file."
+      );
+    }
+    return (prismaInstance as any)[prop];
+  },
+});

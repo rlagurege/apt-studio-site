@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import ConflictWarning from "./ConflictWarning";
 
 type ScheduleModalProps = {
   isOpen: boolean;
@@ -22,6 +23,7 @@ export default function ScheduleModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [artists, setArtists] = useState<Array<{ id: string; name: string; email: string }>>([]);
+  const [hasConflict, setHasConflict] = useState(false);
   
   // Format date for datetime-local input
   const formatDateForInput = (date: Date) => {
@@ -242,6 +244,17 @@ export default function ScheduleModal({
             />
           </div>
 
+          {/* Conflict Warning */}
+          {formData.artistId && formData.startAt && formData.endAt && (
+            <ConflictWarning
+              artistId={formData.artistId}
+              startAt={formData.startAt}
+              endAt={formData.endAt}
+              excludeId={requestId && requestId !== "new" ? requestId : undefined}
+              onConflictDetected={setHasConflict}
+            />
+          )}
+
           {error && (
             <div className="rounded-xl border border-red-600/50 bg-red-900/30 p-3 text-sm text-red-200">
               {error}
@@ -258,10 +271,10 @@ export default function ScheduleModal({
             </button>
             <button
               type="submit"
-              disabled={loading}
-              className="flex-1 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60 transition-opacity"
+              disabled={loading || hasConflict}
+              className="flex-1 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-opacity"
             >
-              {loading ? "Scheduling..." : "Schedule Appointment"}
+              {loading ? "Scheduling..." : hasConflict ? "Resolve Conflict First" : "Schedule Appointment"}
             </button>
           </div>
         </form>
