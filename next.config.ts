@@ -23,10 +23,6 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  // ESLint configuration
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
   // Environment variables - don't fail build if missing (Vercel will provide them)
   env: {
     // These will be available at runtime from Vercel environment variables
