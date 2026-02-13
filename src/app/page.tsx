@@ -107,31 +107,35 @@ export default function HomePage() {
 
         {/* Location = horror (cinematic) */}
         <section data-style="horror" className="border-b border-[var(--border)] bg-[var(--card)] py-12 text-center">
-          <h2 className="text-2xl font-semibold text-[var(--foreground)]">Location</h2>
-          <div className="mt-4 flex flex-col items-center gap-4 sm:gap-6">
-            <div className="space-y-1 text-sm text-[var(--muted)]">
-              <p className="font-medium text-[var(--foreground)]">{SITE.addressSingleLine}</p>
-              <a href={`tel:${SITE.phone.replace(/\D/g, "")}`} className="underline hover:text-red-500">
-                {SITE.phone}
-              </a>
-              <br />
-              <a href={SITE.mapsUrl} target="_blank" rel="noreferrer noopener" className="underline hover:text-red-500">
-                Open in Google Maps →
-              </a>
+          <h2 className="text-2xl font-semibold text-[var(--foreground)] sm:text-3xl">Location</h2>
+          <div className="mt-6 flex flex-col items-center gap-6 sm:gap-8">
+            <div className="space-y-2 text-sm text-[var(--muted)] sm:text-base">
+              <p className="font-medium text-[var(--foreground)] text-base sm:text-lg">{SITE.addressSingleLine}</p>
+              <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center sm:gap-4">
+                <a href={`tel:${SITE.phone.replace(/\D/g, "")}`} className="underline hover:text-red-500 transition-colors">
+                  {SITE.phone}
+                </a>
+                <span className="hidden sm:inline text-[var(--muted)]">·</span>
+                <a href={SITE.mapsUrl} target="_blank" rel="noreferrer noopener" className="underline hover:text-red-500 transition-colors">
+                  Open in Google Maps →
+                </a>
+              </div>
             </div>
 
-            <div className="w-full max-w-md aspect-[4/3] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-sm">
-              <iframe
-                title="Addictive Pain Tattoo location"
-                src={`https://www.google.com/maps?q=${encodeURIComponent(SITE.addressSingleLine)}&output=embed&z=15`}
-                width="100%"
-                height="100%"
-                className="border-0"
-                allowFullScreen
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                style={{ minHeight: "300px", border: "none" }}
-              />
+            <div className="w-full max-w-2xl aspect-[16/10] sm:aspect-[16/9] overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] shadow-lg transition-all duration-300 hover:shadow-xl hover:border-[var(--accent)]/30">
+              <div className="relative w-full h-full">
+                <iframe
+                  title="Addictive Pain Tattoo location"
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(SITE.addressSingleLine)}&output=embed&z=15&hl=en`}
+                  width="100%"
+                  height="100%"
+                  className="border-0 absolute inset-0"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  style={{ border: "none", minHeight: "300px" }}
+                />
+              </div>
             </div>
           </div>
         </section>
