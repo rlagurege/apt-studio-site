@@ -200,6 +200,14 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    redirect({ url, baseUrl }) {
+      // If redirecting to a relative URL, make it absolute
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // If redirecting to same origin, allow it
+      if (new URL(url).origin === baseUrl) return url;
+      // Default to base URL
+      return baseUrl;
+    },
   },
   pages: {
     signIn: "/artist/login",

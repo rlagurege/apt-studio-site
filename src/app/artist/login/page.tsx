@@ -32,7 +32,15 @@ function LoginForm() {
         setLoading(false);
         return;
       }
-      if (res?.url) window.location.href = res.url;
+      if (res?.ok) {
+        // Check if user is admin and redirect accordingly
+        const staffMember = staff.find((s) => s.slug === slug);
+        const isAdmin = staffMember?.role === "admin";
+        const finalUrl = isAdmin ? "/admin/dashboard" : callbackUrl;
+        window.location.href = finalUrl;
+      } else if (res?.url) {
+        window.location.href = res.url;
+      }
     } catch {
       setError("Something went wrong.");
     }
@@ -113,8 +121,10 @@ function LoginForm() {
                 slug={slug}
                 userName={staff.find((s) => s.slug === slug)?.name || artists.find((a) => a.slug === slug)?.name || slug}
                 onSuccess={() => {
-                  // After passkey login, redirect to dashboard
-                  const finalUrl = slug === "tammy-gomula" ? "/admin/dashboard" : callbackUrl;
+                  // After passkey login, redirect to dashboard based on role
+                  const staffMember = staff.find((s) => s.slug === slug);
+                  const isAdmin = staffMember?.role === "admin";
+                  const finalUrl = isAdmin ? "/admin/dashboard" : callbackUrl;
                   window.location.href = finalUrl;
                 }}
               />
