@@ -23,7 +23,7 @@ export default function Footer() {
               {SITE.phone}
             </a>
             <Link href="/appointments" className="mt-1 block underline hover:text-red-500">
-              Request appointment — Tammi will follow up
+              Request appointment — Tami will follow up
             </Link>
           </div>
         </div>

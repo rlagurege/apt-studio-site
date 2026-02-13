@@ -102,7 +102,7 @@ export const authOptions: NextAuthOptions = {
         
         console.log(`[Auth] Attempting login for slug: "${slug}", password length: ${password.length}`);
         
-        // Check staff/admin first (e.g., Tammi)
+        // Check staff/admin first (e.g., Tami)
         const staffPasswords = getStaffPasswords();
         const staffMember = staff.find((s) => s.slug === slug);
         if (staffMember) {

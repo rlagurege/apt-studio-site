@@ -10,10 +10,10 @@ export type StaffMember = {
 
 export const staff: StaffMember[] = [
   {
-    slug: "tammi-gomula",
-    name: "Tammi Gomula",
+    slug: "tami-gomula",
+    name: "Tami Gomula",
     role: "admin",
-    email: "tammi@aptstudio.com", // Update with real email
+    email: "tami@aptstudio.com", // Update with real email
     phone: "(518) 921-4167",
   },
   {

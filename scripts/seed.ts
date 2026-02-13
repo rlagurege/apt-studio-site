@@ -65,42 +65,42 @@ async function main() {
   ]);
   console.log("✅ Roles created: Admin, Scheduler, Artist");
 
-  // Create Tammi (Admin/Scheduler)
-  const tammy = await prisma.user.upsert({
-    where: { tenantId_email: { tenantId: tenant.id, email: "tammi-gomula@apt.com" } },
-    update: { name: "Tammi Gomula" },
+  // Create Tami (Admin/Scheduler)
+  const tami = await prisma.user.upsert({
+    where: { tenantId_email: { tenantId: tenant.id, email: "tami-gomula@apt.com" } },
+    update: { name: "Tami Gomula" },
     create: { 
       tenantId: tenant.id, 
-      email: "tammi-gomula@apt.com", 
-      name: "Tammi Gomula", 
+      email: "tami-gomula@apt.com", 
+      name: "Tami Gomula", 
       status: "active" 
     },
   });
   
-  // Assign Tammi roles
+  // Assign Tami roles
   await prisma.userRole.upsert({
     where: { 
       tenantId_userId_roleId: { 
         tenantId: tenant.id, 
-        userId: tammy.id, 
+        userId: tami.id, 
         roleId: adminRole.id 
       } 
     },
     update: {},
-    create: { tenantId: tenant.id, userId: tammy.id, roleId: adminRole.id },
+    create: { tenantId: tenant.id, userId: tami.id, roleId: adminRole.id },
   });
   await prisma.userRole.upsert({
     where: { 
       tenantId_userId_roleId: { 
         tenantId: tenant.id, 
-        userId: tammy.id, 
+        userId: tami.id, 
         roleId: schedulerRole.id 
       } 
     },
     update: {},
-    create: { tenantId: tenant.id, userId: tammy.id, roleId: schedulerRole.id },
+    create: { tenantId: tenant.id, userId: tami.id, roleId: schedulerRole.id },
   });
-  console.log("✅ Tammi Gomula created (Admin/Scheduler)");
+  console.log("✅ Tami Gomula created (Admin/Scheduler)");
 
   // Create all artists from content/artists.ts
   const artistUsers = [];

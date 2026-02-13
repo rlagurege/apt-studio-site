@@ -136,7 +136,7 @@ export default function AdminDashboardClient() {
   };
 
   const handleText = (phone: string, name: string) => {
-    const message = encodeURIComponent(`Hi ${name}, this is Tammy from APT Studio. We're confirming your appointment request.`);
+    const message = encodeURIComponent(`Hi ${name}, this is Tami from APT Studio. We're confirming your appointment request.`);
     window.location.href = `sms:${phone.replace(/\D/g, "")}?body=${message}`;
   };
 
@@ -543,7 +543,7 @@ export default function AdminDashboardClient() {
                     />
                     <button
                       onClick={() => {
-                        const msg = reminderMessage[a.id] || `Hi ${a.name}, this is Tammy from APT Studio regarding your appointment request.`;
+                        const msg = reminderMessage[a.id] || `Hi ${a.name}, this is Tami from APT Studio regarding your appointment request.`;
                         handleSendSMS(a.contact, msg);
                       }}
                       className="mt-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-500"

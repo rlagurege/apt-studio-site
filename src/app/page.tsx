@@ -85,7 +85,7 @@ export default function HomePage() {
             Meet the Crew
           </h2>
           <p className="mt-2 text-sm text-[var(--muted)] max-w-xl mx-auto">
-            Pick an artist by style. View their work. Request an appointment—Tammi will follow up to schedule.
+            Pick an artist by style. View their work. Request an appointment—Tami will follow up to schedule.
           </p>
           <div className="mt-8 flex justify-center">
             <FaceGrid artists={artists} />

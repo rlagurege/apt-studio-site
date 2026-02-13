@@ -84,13 +84,13 @@ function parseForm(req: Request): Promise<Parsed> {
   });
 }
 
-async function maybeEmailTammy(opts: { subject: string; text: string }) {
+async function maybeEmailTami(opts: { subject: string; text: string }) {
   const host = process.env.SMTP_HOST;
   const port = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
   const from = process.env.EMAIL_FROM;
-  const to = process.env.TAMMY_EMAIL;
+  const to = process.env.TAMMY_EMAIL; // Note: Keep TAMMY_EMAIL for backward compatibility
 
   if (!host || !port || !user || !pass || !from || !to) return;
 
@@ -212,7 +212,7 @@ export async function POST(req: Request) {
       `Request ID: ${id}\n` +
       `Created: ${createdAtISO}\n`;
 
-    await maybeEmailTammy({ subject, text });
+    await maybeEmailTami({ subject, text });
 
     return NextResponse.json({ ok: true, id });
   } catch (err: unknown) {

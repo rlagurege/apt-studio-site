@@ -65,16 +65,16 @@ export async function POST(req: Request) {
     if (!message) {
       switch (reminderType) {
         case "confirmation":
-          message = `Hi ${appointment.name}, this is Tammy from APT Studio. We received your appointment request for ${appointment.placement}. We'll contact you soon to schedule.`;
+          message = `Hi ${appointment.name}, this is Tami from APT Studio. We received your appointment request for ${appointment.placement}. We'll contact you soon to schedule.`;
           break;
         case "reminder":
-          message = `Hi ${appointment.name}, this is Tammy from APT Studio. Reminder: Your appointment is coming up. Please confirm your availability.`;
+          message = `Hi ${appointment.name}, this is Tami from APT Studio. Reminder: Your appointment is coming up. Please confirm your availability.`;
           break;
         case "followup":
-          message = `Hi ${appointment.name}, this is Tammy from APT Studio. Following up on your appointment request. Please reply to confirm.`;
+          message = `Hi ${appointment.name}, this is Tami from APT Studio. Following up on your appointment request. Please reply to confirm.`;
           break;
         default:
-          message = `Hi ${appointment.name}, this is Tammy from APT Studio regarding your appointment request.`;
+          message = `Hi ${appointment.name}, this is Tami from APT Studio regarding your appointment request.`;
       }
     }
 

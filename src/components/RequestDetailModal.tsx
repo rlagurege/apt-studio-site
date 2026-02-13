@@ -73,7 +73,7 @@ export default function RequestDetailModal({
   };
 
   const handleText = (phone: string) => {
-    const message = encodeURIComponent(`Hi, this is Tammi from APT Studio regarding your appointment request.`);
+    const message = encodeURIComponent(`Hi, this is Tami from APT Studio regarding your appointment request.`);
     window.location.href = `sms:${phone.replace(/\D/g, "")}?body=${message}`;
   };
 

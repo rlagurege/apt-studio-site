@@ -157,7 +157,7 @@ export default function BookingRequestForm({ artists, initialArtistSlug }: Props
             className="rounded-xl border border-green-600/50 bg-green-900/30 p-4 text-sm text-green-200 text-center"
           >
             <p className="font-semibold mb-2">✓ Request received!</p>
-            <p>Tammi will contact you soon to schedule your appointment.</p>
+            <p>Tami will contact you soon to schedule your appointment.</p>
           </div>
         )}
 

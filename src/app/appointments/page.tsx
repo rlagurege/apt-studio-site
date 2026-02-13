@@ -14,7 +14,7 @@ export default async function AppointmentsPage({ searchParams }: Props) {
       <header className="text-center mb-12">
         <h1 className="text-3xl font-semibold text-[var(--foreground)] sm:text-4xl">Request an appointment</h1>
         <p className="mt-3 mx-auto max-w-xl text-[var(--muted)]">
-          Choose an artist, add a reference image, and describe your idea. Tammy will reach out to confirm scheduling.
+          Choose an artist, add a reference image, and describe your idea. Tami will reach out to confirm scheduling.
         </p>
       </header>
 
@@ -30,7 +30,7 @@ export default async function AppointmentsPage({ searchParams }: Props) {
               <li>Pick the artist you want.</li>
               <li>Upload a reference image (optional but recommended).</li>
               <li>Describe placement, size, and style details.</li>
-              <li>Tammy follows up to schedule and confirm.</li>
+              <li>Tami follows up to schedule and confirm.</li>
             </ol>
             <div className="mt-6 rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm text-[var(--muted)]">
               <strong className="text-[var(--foreground)]">Tip:</strong> The more detail you provide (style, size, placement), the faster scheduling goes.
